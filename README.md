@@ -12,7 +12,7 @@ Australians lose thousands of dollars each year by swiping the wrong debit/credi
 **PerkPilot AU** solves this with an instant, client-side, zero-bias utility:
 - **Perk Optimizer**: Select an Australian merchant across **Essentials** (Woolworths, Coles, ALDI, Bunnings, Kmart), **Tech** (JB Hi-Fi, Apple, Officeworks), or **Fuel** (7-Eleven, Ampol, BP). PerkPilot calculates the optimal payment card or gift card to use based on authentic earn rates, FX fee rules, and merchant cashbacks.
 - **My Deck**: Manage the cards and accounts you hold with local persistence.
-- **Savings Benchmark**: Real-time deposit yield calculator for Australian APRA-regulated deposit accounts and term deposits (ING, Rabobank, uBank, Bankwest, Revolut, Up, Macquarie, ANZ Plus, CBA GoalSaver, NAB, Judo Bank).
+- **Savings Benchmark**: Deposit yield calculator (hand-entered rate snapshot, with intro-rate, cap and term-deposit aware projections) for Australian APRA-regulated deposit accounts and term deposits (ING, Rabobank, uBank, Bankwest, Revolut, Up, Macquarie, ANZ Plus, CBA GoalSaver, NAB, Judo Bank).
 - **eGift Card Marketplace**: Comprehensive directory of instant digital gift card discount programs across **Macquarie Marketplace**, **NRMA Blue / RACV Auto Clubs**, **Suncorp Bank Benefits**, **ShopBack / Cashrewards**, and **Bupa Life Rewards**.
 - **Math Auditor**: Complete transparent disclosure of every formula, point valuation (e.g. Qantas at ~1.05¢, Amex MR at ~0.50¢, CBA/Westpac at ~0.45¢), and calculation step.
 

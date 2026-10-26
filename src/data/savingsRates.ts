@@ -1,5 +1,8 @@
 import { SavingsAccount } from '@/types';
 
+/** Date the rates below were last hand-checked against provider pages. Update on every refresh. */
+export const SAVINGS_RATES_AS_OF = '2026-10-26';
+
 export const SAVINGS_ACCOUNTS_DATA: SavingsAccount[] = [
   // =========================================================================
   // 1. HIGHEST YIELD CONDITIONAL & INTRODUCTORY SAVINGS
@@ -28,6 +31,9 @@ export const SAVINGS_ACCOUNTS_DATA: SavingsAccount[] = [
     notes: 'Australia’s top market leader at 6.25% p.a. for new customers, reverting to a competitive 5.65% ongoing bonus rate when monthly criteria are met.',
     highlightBadge: 'Market Leader 6.25%',
     directUrl: 'https://www.ing.com.au/savings/savings-maximiser.html',
+    introMonths: 4,
+    ongoingRatePercent: 5.65,
+    fcsProtected: true,
   },
   {
     id: 'rabobank_high_interest',
@@ -49,6 +55,9 @@ export const SAVINGS_ACCOUNTS_DATA: SavingsAccount[] = [
     notes: 'Market-leading 6.15% introductory rate for 4 months with zero transaction hoops, backed by agricultural specialist Rabobank.',
     highlightBadge: 'Top Intro Yield 6.15%',
     directUrl: 'https://www.rabobank.com.au/deposits/personal/high-interest-savings-account',
+    introMonths: 4,
+    ongoingRatePercent: 4.15,
+    fcsProtected: true,
   },
   {
     id: 'westpac_life_under_40',
@@ -71,6 +80,9 @@ export const SAVINGS_ACCOUNTS_DATA: SavingsAccount[] = [
     notes: 'Highest Big Four rate in Australia (5.95% p.a.) tailored for young Australians and professionals up to $30k.',
     highlightBadge: '5.95% Big Four Leader',
     directUrl: 'https://www.westpac.com.au/personal-banking/bank-accounts/savings-accounts/life/',
+    minAge: 18,
+    maxAge: 40,
+    fcsProtected: true,
   },
   {
     id: 'boq_future_saver',
@@ -93,6 +105,9 @@ export const SAVINGS_ACCOUNTS_DATA: SavingsAccount[] = [
     notes: 'Consistent 5.75% high-interest account for under-35 savers.',
     highlightBadge: 'Top Under-35 Rate (5.75%)',
     directUrl: 'https://www.boq.com.au/personal/banking/savings-and-term-deposits/future-saver-account',
+    minAge: 14,
+    maxAge: 35,
+    fcsProtected: true,
   },
   {
     id: 'ubank_save',
@@ -117,6 +132,8 @@ export const SAVINGS_ACCOUNTS_DATA: SavingsAccount[] = [
     notes: 'Australia’s favourite low-hoop high-interest account. Simply deposit $200/month from your salary or external bank with zero swipe or withdrawal restrictions.',
     highlightBadge: 'Low-Hoop Leader (5.50%)',
     directUrl: 'https://www.ubank.com.au/banking/savings-account',
+    aboveCapRatePercent: 5.00,
+    fcsProtected: true,
   },
   {
     id: 'up_savers',
@@ -139,6 +156,7 @@ export const SAVINGS_ACCOUNTS_DATA: SavingsAccount[] = [
     notes: 'The easiest condition in Australia: simply make 5 purchases (e.g. coffee or tap) and enjoy 5.35% with zero deposit or growth rules.',
     highlightBadge: 'Easiest Bonus Hoops (5.35%)',
     directUrl: 'https://up.com.au/features/savers/',
+    fcsProtected: true,
   },
 
   // =========================================================================
@@ -164,6 +182,7 @@ export const SAVINGS_ACCOUNTS_DATA: SavingsAccount[] = [
     notes: 'The gold standard of stress-free banking. Flat 5.30% unconditional interest on every dollar up to $250k without checking criteria.',
     highlightBadge: 'Top Unconditional (5.30%)',
     directUrl: 'https://www.macquarie.com.au/everyday-banking/savings-account.html',
+    fcsProtected: true,
   },
   {
     id: 'bankwest_easy_saver',
@@ -186,6 +205,9 @@ export const SAVINGS_ACCOUNTS_DATA: SavingsAccount[] = [
     notes: 'Competitive 5.10% introductory interest with Bankwest for 4 months with zero deposit or transaction requirements.',
     highlightBadge: 'Bankwest Intro (5.10%)',
     directUrl: 'https://www.bankwest.com.au/personal/bank-accounts/savings-accounts/easy-saver',
+    introMonths: 4,
+    ongoingRatePercent: 1.50,
+    fcsProtected: true,
   },
   {
     id: 'anz_plus_save',
@@ -206,6 +228,8 @@ export const SAVINGS_ACCOUNTS_DATA: SavingsAccount[] = [
     notes: 'Clean 5.00% unconditional everyday interest inside ANZ Plus’s digital app with smart multi-goal buckets.',
     highlightBadge: 'Zero Hoops (5.00%)',
     directUrl: 'https://www.anz.com.au/plus/save/',
+    aboveCapRatePercent: 3.75,
+    fcsProtected: true,
   },
   {
     id: 'revolut_savings_vault',
@@ -253,6 +277,7 @@ export const SAVINGS_ACCOUNTS_DATA: SavingsAccount[] = [
     notes: 'Bankwest bonus saver rewarding regular monthly deposit growth up to $500k.',
     highlightBadge: 'Bankwest 5.00%',
     directUrl: 'https://www.bankwest.com.au/personal/bank-accounts/savings-accounts/hero-saver',
+    fcsProtected: true,
   },
   {
     id: 'cba_goal_saver',
@@ -274,6 +299,7 @@ export const SAVINGS_ACCOUNTS_DATA: SavingsAccount[] = [
     notes: 'CommBank saver rewarding monthly deposit growth up to $50,000.',
     highlightBadge: 'CBA GoalSaver',
     directUrl: 'https://www.commbank.com.au/banking/goal-saver.html',
+    fcsProtected: true,
   },
   {
     id: 'nab_reward_saver',
@@ -295,6 +321,7 @@ export const SAVINGS_ACCOUNTS_DATA: SavingsAccount[] = [
     notes: 'Requires zero withdrawals in the month to earn bonus interest, but covers high balances up to $1M.',
     highlightBadge: 'High Balance Cap ($1M)',
     directUrl: 'https://www.nab.com.au/personal/banking/savings-accounts/nab-reward-saver',
+    fcsProtected: true,
   },
 
   // =========================================================================
@@ -316,10 +343,10 @@ export const SAVINGS_ACCOUNTS_DATA: SavingsAccount[] = [
       'Interest paid at maturity',
       'Backed by Australian Government FCS guarantee up to $250,000',
     ],
-    balanceCapAud: 250000,
     notes: 'Lock in 5.15% guaranteed return for 12 months with zero market risk.',
     highlightBadge: 'Guaranteed 12M (5.15%)',
     directUrl: 'https://www.judo.bank/personal-term-deposit',
+    fcsProtected: true,
   },
   {
     id: 'macquarie_6m_td',
@@ -337,9 +364,9 @@ export const SAVINGS_ACCOUNTS_DATA: SavingsAccount[] = [
       'Interest paid at maturity',
       'Zero monthly admin fees',
     ],
-    balanceCapAud: 1000000,
     notes: 'Guaranteed 4.95% fixed return for 6 months with Macquarie Bank.',
     highlightBadge: 'Guaranteed 6M (4.95%)',
     directUrl: 'https://www.macquarie.com.au/everyday-banking/term-deposits.html',
+    fcsProtected: true,
   }
 ];

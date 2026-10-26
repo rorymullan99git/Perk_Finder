@@ -109,4 +109,14 @@ export interface SavingsAccount {
   notes: string;
   highlightBadge?: string;
   directUrl?: string;
+  /** Length of the introductory rate window, in months. `totalRatePercent` is the intro rate. */
+  introMonths?: number;
+  /** Rate earned after the intro window ends. Required when `introMonths` is set. */
+  ongoingRatePercent?: number;
+  /** Rate earned on the part of the balance above `balanceCapAud`. Defaults to `baseRatePercent`. */
+  aboveCapRatePercent?: number;
+  minAge?: number;
+  maxAge?: number;
+  /** True only where the account is held with an ADI covered by the Financial Claims Scheme. */
+  fcsProtected?: boolean;
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { PERK_OFFERS_DATA } from '@/data/perkOffers';
+import { PERK_OFFERS_DATA, PERK_OFFERS_AS_OF } from '@/data/perkOffers';
 import { MERCHANTS_MAP } from '@/data/merchants';
 import { CARDS_MAP } from '@/data/cards';
 import { formatAud } from '@/lib/utils';
@@ -116,6 +116,9 @@ export const GiftCardMarketplaceView: React.FC = () => {
         title="The instant 2% to 4.5% discount."
         description="Buy a digital eGift card seconds before you pay across Macquarie Marketplace, NRMA/RACV, Suncorp, ShopBack, or Bupa and the same groceries, tech and petrol cost less."
       />
+      <p className="text-xs text-stone-600 dark:text-stone-400 -mt-4">
+        Hand-entered discount rates as of {PERK_OFFERS_AS_OF}, not live. Rates change often, so check the provider&apos;s app before you buy.
+      </p>
 
       {/* Control & Search Bar */}
       <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm dark:border-stone-800 dark:bg-stone-900 space-y-4">

@@ -1,5 +1,8 @@
 import { PerkOffer } from '@/types';
 
+/** Date the offers below were last hand-checked against provider pages. Update on every refresh. */
+export const PERK_OFFERS_AS_OF = '2026-10-26';
+
 /**
  * Verified Australian Perk Offers & Rates
  * 

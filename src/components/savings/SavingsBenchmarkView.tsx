@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { SAVINGS_ACCOUNTS_DATA } from '@/data/savingsRates';
+import { SAVINGS_ACCOUNTS_DATA, SAVINGS_RATES_AS_OF } from '@/data/savingsRates';
+import { projectInterest, isEligibleForAge, isAgeRestricted } from '@/lib/savings';
 import { SavingsAccount } from '@/types';
 import { formatAud } from '@/lib/utils';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -24,6 +25,7 @@ import {
 export const SavingsBenchmarkView: React.FC = () => {
   const [balanceAud, setBalanceAud] = useState<number>(35000);
   const [balanceText, setBalanceText] = useState('35000');
+  const [ageText, setAgeText] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'unconditional' | 'conditional' | 'term_deposit'>('all');
   const [selectedAccount, setSelectedAccount] = useState<SavingsAccount | null>(null);
 
@@ -36,23 +38,16 @@ export const SavingsBenchmarkView: React.FC = () => {
 
   const balancePresets = [10000, 25000, 50000, 100000, 250000];
 
-  // Calculate earnings for each account
-  const accountsWithCalculations = useMemo(() => {
-    return SAVINGS_ACCOUNTS_DATA.map((acc) => {
-      // Check if balance exceeds balanceCapAud
-      const effectiveBalance = acc.balanceCapAud ? Math.min(balanceAud, acc.balanceCapAud) : balanceAud;
-      const annualInterest = effectiveBalance * (acc.totalRatePercent / 100);
-      const monthlyInterest = annualInterest / 12;
+  const age = ageText === '' ? null : Number(ageText);
+  const hasAge = age !== null && Number.isFinite(age) && age > 0;
 
-      return {
-        ...acc,
-        effectiveBalance,
-        annualInterest,
-        monthlyInterest,
-        isCapped: acc.balanceCapAud ? balanceAud > acc.balanceCapAud : false,
-      };
-    }).sort((a, b) => b.totalRatePercent - a.totalRatePercent);
-  }, [balanceAud]);
+  // Project interest for each account the user is eligible for, ranked by annualised return
+  const accountsWithCalculations = useMemo(() => {
+    return SAVINGS_ACCOUNTS_DATA
+      .filter((acc) => !hasAge || isEligibleForAge(acc, age as number))
+      .map((acc) => ({ ...acc, ...projectInterest(acc, balanceAud) }))
+      .sort((a, b) => b.monthlyAud - a.monthlyAud);
+  }, [balanceAud, hasAge, age]);
 
   const filteredAccounts = useMemo(() => {
     if (filterType === 'unconditional') {
@@ -67,7 +62,8 @@ export const SavingsBenchmarkView: React.FC = () => {
     return accountsWithCalculations;
   }, [accountsWithCalculations, filterType]);
 
-  const topAccount = filteredAccounts[0];
+  // Without an age, don't headline an account most people can't open
+  const topAccount = filteredAccounts.find((a) => hasAge || !isAgeRestricted(a));
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
@@ -134,6 +130,27 @@ export const SavingsBenchmarkView: React.FC = () => {
             </div>
           </div>
 
+          {/* Age eligibility */}
+          <div className="md:col-span-12 flex flex-wrap items-center gap-2 -mt-3">
+            <label htmlFor="age" className="text-xs font-bold uppercase tracking-wider text-stone-600">
+              Your age (optional)
+            </label>
+            <input
+              id="age"
+              type="number"
+              inputMode="numeric"
+              min="14"
+              max="120"
+              value={ageText}
+              onChange={(e) => setAgeText(e.target.value)}
+              placeholder="e.g. 29"
+              className="h-9 w-24 rounded-xl border border-stone-300 bg-white px-3 text-sm font-semibold text-stone-900 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100"
+            />
+            <span className="text-xs text-stone-600 dark:text-stone-400">
+              Hides age-restricted accounts you cannot open.
+            </span>
+          </div>
+
           {/* Top earner preview card */}
           {topAccount && (
             <div className="md:col-span-5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900 p-4 space-y-1">
@@ -142,14 +159,15 @@ export const SavingsBenchmarkView: React.FC = () => {
               </span>
               <div className="flex items-baseline justify-between">
                 <span className="font-extrabold text-base text-stone-900 dark:text-white truncate">
-                  {topAccount.bank} ({topAccount.totalRatePercent}% p.a.)
+                  {topAccount.bank} ({topAccount.totalRatePercent}% p.a.{topAccount.hasIntroRate ? ' intro' : ''})
                 </span>
                 <span className="text-xl font-black text-emerald-700 dark:text-emerald-400">
-                  +{formatAud(topAccount.annualInterest)}/yr
+                  +{formatAud(topAccount.interestAud)}{topAccount.horizonMonths === 12 ? '/yr' : ` / ${topAccount.horizonMonths}mo`}
                 </span>
               </div>
               <p className="text-xs text-stone-600 dark:text-stone-400">
-                Generates approx <strong>{formatAud(topAccount.monthlyInterest)}</strong> interest every month on your ${balanceAud.toLocaleString()} deposit.
+                Approx <strong>{formatAud(topAccount.monthlyAud)}</strong> interest a month on your ${balanceAud.toLocaleString()} deposit
+                {topAccount.hasIntroRate ? `, including the ${topAccount.introMonths}-month intro rate then ${topAccount.ongoingRatePercent}% p.a.` : '.'}
               </p>
             </div>
           )}
@@ -206,7 +224,7 @@ export const SavingsBenchmarkView: React.FC = () => {
         </div>
 
         <span className="text-xs text-stone-600">
-          Hand-entered rate snapshot, not live. Confirm on the bank&apos;s page before you apply.
+          Hand-entered rate snapshot as of {SAVINGS_RATES_AS_OF}, not live. Confirm on the bank&apos;s page before you apply.
         </span>
       </div>
 
@@ -250,6 +268,16 @@ export const SavingsBenchmarkView: React.FC = () => {
                       {account.highlightBadge}
                     </Badge>
                   )}
+                  {account.hasIntroRate && (
+                    <Badge variant="warning" className="text-xs py-0">
+                      Intro {account.introMonths}M then {account.ongoingRatePercent?.toFixed(2)}%
+                    </Badge>
+                  )}
+                  {isAgeRestricted(account) && (
+                    <Badge variant="secondary" className="text-xs py-0">
+                      Ages {account.minAge}-{account.maxAge}
+                    </Badge>
+                  )}
                   {account.isUnconditional ? (
                     <Badge variant="success" className="text-xs py-0">
                       Zero Hoops
@@ -269,21 +297,26 @@ export const SavingsBenchmarkView: React.FC = () => {
                 {/* Calculated returns box */}
                 <div className="rounded-xl bg-stone-50 dark:bg-stone-800/80 p-3 mb-3 border border-stone-100 dark:border-stone-700/60">
                   <div className="flex justify-between items-center text-xs mb-1">
-                    <span className="text-stone-600">Monthly Interest:</span>
+                    <span className="text-stone-600">Avg. Monthly Interest:</span>
                     <span className="font-extrabold text-stone-900 dark:text-white">
-                      +{formatAud(account.monthlyInterest)}
+                      +{formatAud(account.monthlyAud)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-stone-600">12-Month Total:</span>
+                    <span className="text-stone-600">
+                      {account.horizonMonths === 12 ? '12-Month Total:' : `Interest over ${account.horizonMonths}-month term:`}
+                    </span>
                     <span className="font-black text-emerald-700 dark:text-emerald-400">
-                      +{formatAud(account.annualInterest)}
+                      +{formatAud(account.interestAud)}
                     </span>
                   </div>
                   {account.isCapped && (
                     <div className="mt-2 text-xs text-amber-700 dark:text-amber-300 flex items-center gap-1">
                       <AlertTriangle className="h-3 w-3 flex-shrink-0" />
-                      <span>Rate capped at ${account.balanceCapAud?.toLocaleString()} balance.</span>
+                      <span>
+                        Headline rate applies to the first ${account.balanceCapAud?.toLocaleString()}; the rest earns{' '}
+                        {(account.aboveCapRatePercent ?? account.baseRatePercent).toFixed(2)}%.
+                      </span>
                     </div>
                   )}
                 </div>
@@ -304,7 +337,7 @@ export const SavingsBenchmarkView: React.FC = () => {
 
               {/* Bottom notes */}
               <div className="mt-4 pt-3 border-t border-stone-100 dark:border-stone-800 text-xs text-stone-600 flex items-center justify-between">
-                <span>Gov FCS Protected</span>
+                <span>{account.fcsProtected ? 'Gov FCS Protected' : 'Check FCS cover with provider'}</span>
                 <div className="flex items-center gap-3">
                   {account.directUrl && (
                     <a

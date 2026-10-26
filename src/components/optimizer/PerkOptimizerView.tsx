@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { usePerkStore } from '@/store/usePerkStore';
 import { MERCHANTS_DATA, MERCHANTS_MAP } from '@/data/merchants';
 import { CARDS_MAP } from '@/data/cards';
-import { PERK_OFFERS_DATA } from '@/data/perkOffers';
+import { PERK_OFFERS_DATA, PERK_OFFERS_AS_OF } from '@/data/perkOffers';
 import { rankOffers } from '@/lib/ranker';
 import { RankedOffer } from '@/types';
 import { formatAud, formatPercent } from '@/lib/utils';
@@ -330,7 +330,7 @@ export const PerkOptimizerView: React.FC = () => {
                       <div className="text-2xl font-black text-emerald-700 dark:text-emerald-400">
                         +{formatAud(topOwned.netBenefitAud)}
                       </div>
-                      <span className="text-xs text-stone-600">Net Financial Value</span>
+                      <span className="text-xs text-stone-600">Est. value, before annual fee</span>
                     </div>
                   </div>
 
@@ -512,7 +512,7 @@ export const PerkOptimizerView: React.FC = () => {
               <span>Ranked Card Ledger for {selectedMerchant.name}</span>
             </h3>
             <p className="text-xs text-stone-600 dark:text-stone-400">
-              Ranked strictly by Net AUD Benefit on a ${spendAud} spend. 0% affiliate influence.
+              Ranked strictly by estimated AUD value on a ${spendAud} spend, before annual fees. Hand-entered offers as of {PERK_OFFERS_AS_OF}; confirm with the provider. 0% affiliate influence.
             </p>
           </div>
 
