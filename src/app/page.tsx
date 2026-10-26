@@ -1,44 +1,46 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { usePerkStore } from '@/store/usePerkStore';
+import { usePerkStore, isAppTab } from '@/store/usePerkStore';
 import { PerkOptimizerView } from '@/components/optimizer/PerkOptimizerView';
 import { WalletView } from '@/components/wallet/WalletView';
 import { SavingsBenchmarkView } from '@/components/savings/SavingsBenchmarkView';
 import { GiftCardMarketplaceView } from '@/components/giftcards/GiftCardMarketplaceView';
-import { MathManifestoView } from '@/components/manifesto/MathManifestoView';
+import { MethodView } from '@/components/method/MethodView';
 
 export default function Home() {
-  const { activeTab } = usePerkStore();
+  const activeTab = usePerkStore((s) => s.activeTab);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     usePerkStore.persist.rehydrate();
+
+    // The URL hash is the source of truth for the tab, so links and the back button work.
+    const syncFromHash = () => {
+      const hash = window.location.hash.slice(1);
+      usePerkStore.setState({ activeTab: isAppTab(hash) ? hash : 'best' });
+    };
+    syncFromHash();
+    window.addEventListener('hashchange', syncFromHash);
     setMounted(true);
+    return () => window.removeEventListener('hashchange', syncFromHash);
   }, []);
 
+  useEffect(() => {
+    if (mounted) window.scrollTo({ top: 0 });
+  }, [activeTab, mounted]);
+
   if (!mounted) {
-    return (
-      <div className="min-h-[50vh] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-10 w-10 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-600 to-amber-500 animate-spin flex items-center justify-center text-white font-bold">
-            P
-          </div>
-          <span className="text-xs font-semibold text-stone-500 tracking-wider uppercase">
-            Loading PerkPilot Engine...
-          </span>
-        </div>
-      </div>
-    );
+    return <div className="min-h-[50vh]" aria-busy="true" />;
   }
 
   return (
-    <div>
-      {activeTab === 'ranker' && <PerkOptimizerView />}
-      {activeTab === 'wallet' && <WalletView />}
+    <>
+      {activeTab === 'best' && <PerkOptimizerView />}
+      {activeTab === 'cards' && <WalletView />}
       {activeTab === 'savings' && <SavingsBenchmarkView />}
       {activeTab === 'giftcards' && <GiftCardMarketplaceView />}
-      {activeTab === 'manifesto' && <MathManifestoView />}
-    </div>
+      {activeTab === 'method' && <MethodView />}
+    </>
   );
 }

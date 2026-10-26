@@ -1,86 +1,62 @@
-# PerkPilot AU (Perk_Finder)
+# PerkPilot AU
 
-> **The Honest Australian Banking & Perks Aggregator**  
-> Pure financial math dictates all rankings. Monetization (referrals/affiliates) is strictly opportunistic and has ZERO influence on ranking, order, or visibility.
+Find the card, gift card or savings account that pays you the most in Australia. Every option is ranked by the dollars it puts back in your pocket; referral or affiliate deals never change the order.
 
----
+## What it does
 
-## 🌟 Overview
+- **Best card**: pick a store and an amount, and see which of your cards (or which card on the market) gives you the most back.
+- **My cards**: tick the cards, accounts and memberships you hold. Saved in your browser only.
+- **Savings**: savings accounts and term deposits ranked by first-year interest on your balance, including when intro rates end.
+- **Gift cards**: discounted eGift cards (Macquarie, NRMA Blue, Suncorp, ShopBack, Bupa) you can buy just before paying.
+- **How the ranking works**: the formula and the value used for each rewards point.
 
-Australians lose thousands of dollars each year by swiping the wrong debit/credit card, missing high-interest savings bonus criteria, or paying full retail price when instant 2% to 4.5% digital eGift card discounts are available.
+All calculations run in the browser from the data in `src/data/`. The site does not call a database at runtime.
 
-**PerkPilot AU** solves this with an instant, client-side, zero-bias utility:
-- **Perk Optimizer**: Select an Australian merchant across **Essentials** (Woolworths, Coles, ALDI, Bunnings, Kmart), **Tech** (JB Hi-Fi, Apple, Officeworks), or **Fuel** (7-Eleven, Ampol, BP). PerkPilot calculates the optimal payment card or gift card to use based on authentic earn rates, FX fee rules, and merchant cashbacks.
-- **My Deck**: Manage the cards and accounts you hold with local persistence.
-- **Savings Benchmark**: Real-time deposit yield calculator for Australian APRA-regulated deposit accounts and term deposits (ING, Rabobank, uBank, Bankwest, Revolut, Up, Macquarie, ANZ Plus, CBA GoalSaver, NAB, Judo Bank).
-- **eGift Card Marketplace**: Comprehensive directory of instant digital gift card discount programs across **Macquarie Marketplace**, **NRMA Blue / RACV Auto Clubs**, **Suncorp Bank Benefits**, **ShopBack / Cashrewards**, and **Bupa Life Rewards**.
-- **Math Auditor**: Complete transparent disclosure of every formula, point valuation (e.g. Qantas at ~1.05¢, Amex MR at ~0.50¢, CBA/Westpac at ~0.45¢), and calculation step.
+## Tech stack
 
----
+Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS, Zustand. Deployed as a standalone container on Google Cloud Run.
 
-## 🚀 Tech Stack
+## Local development
 
-- **Framework**: Next.js 14+ (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS & Lucide React
-- **State Management**: Zustand with `persist` middleware
-- **Backend / Database**: Supabase (`@supabase/supabase-js`, `@supabase/ssr`, PostgreSQL with RLS)
-- **Code Review**: CodeRabbit AI integration
-
----
-
-## 🛠️ Getting Started
-
-### 1. Prerequisites
-- Node.js 18.17+ or 20+
-- npm or yarn
-
-### 2. Installation
 ```bash
-git clone https://github.com/rorymullan99git/Perk_Finder.git
-cd Perk_Finder
 npm install
-```
-
-### 3. Environment Configuration
-Copy the template and fill in your Supabase credentials:
-```bash
-cp .env.example .env.local
-```
-Update `.env.local`:
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-publishable-key
-```
-
-### 4. Database Setup (Optional)
-To sync rates with your Supabase database:
-1. Run the schema script in the Supabase SQL Editor from `supabase/schema.sql`.
-2. Seed verified Australian rates:
-   ```bash
-   npx tsx scripts/seed-rates.ts
-   ```
-
-### 5. Development Server
-```bash
-npm run dev
-```
-Open [http://localhost:3000](http://localhost:3000) with your browser.
-
-### 6. Production Build
-```bash
+npm run dev        # http://localhost:3000
+npm run typecheck
 npm run build
-npm run start
 ```
 
----
+## Deploying to Cloud Run
 
-## 🔒 Security & Privacy
+```bash
+gcloud config set project YOUR_PROJECT_ID
+SERVICE=perk-finder REGION=australia-southeast1 ./scripts/deploy-cloud-run.sh
+```
 
-- Client-side first: Card selections (`heldCardIds`), favorite merchants, and spend preferences remain private in local browser storage (`localStorage`).
-- Zero tracking or affiliate ranking manipulation.
+The script builds from the `Dockerfile` and deploys with a dedicated no-permission service account, a max of 3 instances (caps cost if someone floods the site), and 512 MiB memory.
 
----
+## Supabase (optional)
 
-## 📄 License
-MIT License.
+The live site does not need Supabase. The schema and seed scripts are kept for a future move of the data into Postgres.
+
+1. Run `supabase/schema.sql` in the Supabase SQL Editor. Tables are publicly **readable** only; there are no write policies.
+2. Put these in `.env.local` (see `.env.example`):
+   - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (public)
+   - `SUPABASE_SERVICE_ROLE_KEY` (secret, used only by the seed scripts on your machine)
+3. `npm run seed:all` to load everything, or `npm run seed:rates` to refresh deposit rates.
+
+Never put the service role key in a `NEXT_PUBLIC_` variable or in the Cloud Run service; it bypasses all database security.
+
+## Security
+
+- No accounts, no server-side user data. Card selections live in `localStorage`.
+- Strict security headers (CSP, HSTS, frame blocking, nosniff) are set in `next.config.mjs`.
+- The Next.js image optimiser is disabled, as no images need it.
+- Database writes are only possible with the service role key.
+
+## Disclaimer
+
+General information only, not financial advice. Rates and offers are a manually collected snapshot; confirm with the provider before applying.
+
+## License
+
+MIT

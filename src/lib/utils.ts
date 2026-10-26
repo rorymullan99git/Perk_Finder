@@ -14,6 +14,15 @@ export function formatAud(amount: number): string {
   }).format(amount);
 }
 
+/** Whole-dollar AUD, for balances and yearly totals. */
+export function formatAudWhole(amount: number): string {
+  return new Intl.NumberFormat('en-AU', {
+    style: 'currency',
+    currency: 'AUD',
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
 export function formatPercent(value: number): string {
   return `${value.toFixed(2)}%`;
 }

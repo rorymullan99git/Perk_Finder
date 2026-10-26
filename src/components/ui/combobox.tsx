@@ -1,28 +1,25 @@
 import * as React from "react";
-import { Check, ChevronsUpDown, Search } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Merchant } from "@/types";
 
 interface ComboboxProps {
+  id: string;
+  label: string;
   merchants: Merchant[];
   selectedId: string;
   onSelect: (id: string) => void;
-  className?: string;
 }
 
-export function MerchantCombobox({
-  merchants,
-  selectedId,
-  onSelect,
-  className,
-}: ComboboxProps) {
+export function MerchantCombobox({ id, label, merchants, selectedId, onSelect }: ComboboxProps) {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
+  const [highlight, setHighlight] = React.useState(0);
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const listId = `${id}-list`;
 
   const selectedMerchant = merchants.find((m) => m.id === selectedId);
 
-  // Close when clicking outside
   React.useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -33,102 +30,97 @@ export function MerchantCombobox({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const filtered = merchants.filter((m) => {
-    const q = search.toLowerCase();
-    return (
+  const q = search.trim().toLowerCase();
+  const filtered = merchants.filter(
+    (m) =>
+      !q ||
       m.name.toLowerCase().includes(q) ||
-      m.category.toLowerCase().includes(q) ||
       m.aliases.some((alias) => alias.toLowerCase().includes(q))
-    );
-  });
+  );
+
+  const choose = (merchantId: string) => {
+    onSelect(merchantId);
+    setOpen(false);
+    setSearch("");
+  };
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setOpen(true);
+      setHighlight((h) => Math.min(h + 1, filtered.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHighlight((h) => Math.max(h - 1, 0));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (open && filtered[highlight]) choose(filtered[highlight].id);
+      else setOpen(true);
+    } else if (e.key === "Escape") {
+      setOpen(false);
+      setSearch("");
+    }
+  };
 
   return (
-    <div ref={containerRef} className={cn("relative w-full", className)}>
-      <button
-        type="button"
-        onClick={() => setOpen(!open)}
-        className="flex h-12 w-full items-center justify-between rounded-2xl border border-stone-200 bg-white px-4 py-2 text-sm text-stone-900 shadow-sm hover:border-emerald-500 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100 transition-colors"
-      >
-        <span className="flex items-center gap-2.5 truncate font-medium">
-          {selectedMerchant ? (
-            <>
-              <span
-                className="h-3 w-3 rounded-full flex-shrink-0"
-                style={{ backgroundColor: selectedMerchant.color }}
-              />
-              <span className="truncate">{selectedMerchant.name}</span>
-              <span className="text-xs text-stone-600 capitalize hidden sm:inline">
-                ({selectedMerchant.category.replace('_', ' ')})
-              </span>
-            </>
-          ) : (
-            <span className="text-stone-600">Select an Australian merchant...</span>
-          )}
-        </span>
-        <ChevronsUpDown className="h-4 w-4 shrink-0 text-stone-600" />
-      </button>
+    <div ref={containerRef} className="relative w-full">
+      <label htmlFor={id} className="block text-sm text-stone-500 mb-1.5">
+        {label}
+      </label>
+      <div className="relative">
+        <input
+          id={id}
+          role="combobox"
+          aria-expanded={open}
+          aria-controls={listId}
+          aria-autocomplete="list"
+          autoComplete="off"
+          value={open ? search : selectedMerchant?.name ?? ""}
+          placeholder={selectedMerchant?.name ?? "Search stores"}
+          onFocus={() => {
+            setOpen(true);
+            setHighlight(0);
+          }}
+          onClick={() => setOpen(true)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setHighlight(0);
+            setOpen(true);
+          }}
+          onKeyDown={onKeyDown}
+          className="h-11 w-full rounded-lg border border-stone-300 bg-white pl-3 pr-9 text-base text-stone-900 placeholder:text-stone-400 focus:border-stone-900 focus:outline-none"
+        />
+        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
+      </div>
 
       {open && (
-        <div className="absolute top-full left-0 z-50 mt-2 w-full min-w-[280px] rounded-2xl border border-stone-200 bg-white p-2 shadow-2xl dark:border-stone-800 dark:bg-stone-900 animate-in fade-in-80 zoom-in-95">
-          {/* Search bar */}
-          <div className="relative mb-2 flex items-center px-2">
-            <Search className="h-4 w-4 text-stone-600 mr-2 shrink-0" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search Woolies, 7-Eleven, Apple, Bunnings, BP..."
-              className="h-9 w-full bg-transparent text-sm placeholder:text-stone-400 focus:outline-none dark:text-stone-100"
-              autoFocus
-            />
-          </div>
-
-          <div className="h-px bg-stone-100 dark:bg-stone-800 mb-1" />
-
-          {/* List items */}
-          <div className="max-h-64 overflow-y-auto space-y-1 pr-1">
-            {filtered.length === 0 ? (
-              <div className="p-4 text-center text-xs text-stone-600">
-                No matching Australian merchant found.
-              </div>
-            ) : (
-              filtered.map((m) => {
-                const isSelected = m.id === selectedId;
-                return (
-                  <button
-                    key={m.id}
-                    type="button"
-                    onClick={() => {
-                      onSelect(m.id);
-                      setOpen(false);
-                      setSearch("");
-                    }}
-                    className={cn(
-                      "flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm text-left transition-colors",
-                      isSelected
-                        ? "bg-emerald-50 text-emerald-950 font-semibold dark:bg-emerald-950/40 dark:text-emerald-200"
-                        : "hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-200"
-                    )}
-                  >
-                    <div className="flex items-center gap-2.5 truncate">
-                      <span
-                        className="h-2.5 w-2.5 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: m.color }}
-                      />
-                      <span className="truncate">{m.name}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-stone-600 capitalize">
-                        {m.category.replace('_', ' ')}
-                      </span>
-                      {isSelected && <Check className="h-4 w-4 text-emerald-700 dark:text-emerald-400" />}
-                    </div>
-                  </button>
-                );
-              })
-            )}
-          </div>
-        </div>
+        <ul
+          id={listId}
+          role="listbox"
+          className="absolute left-0 top-full z-50 mt-1 max-h-72 w-full overflow-y-auto rounded-lg border border-stone-200 bg-white py-1 shadow-lg"
+        >
+          {filtered.length === 0 ? (
+            <li className="px-3 py-2 text-sm text-stone-500">No matching store</li>
+          ) : (
+            filtered.map((m, i) => (
+              <li
+                key={m.id}
+                role="option"
+                aria-selected={m.id === selectedId}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => choose(m.id)}
+                onMouseEnter={() => setHighlight(i)}
+                className={cn(
+                  "flex cursor-pointer items-center justify-between px-3 py-2 text-sm text-stone-700",
+                  i === highlight && "bg-stone-100"
+                )}
+              >
+                <span>{m.name}</span>
+                {m.id === selectedId && <Check className="h-4 w-4 text-emerald-700" />}
+              </li>
+            ))
+          )}
+        </ul>
       )}
     </div>
   );

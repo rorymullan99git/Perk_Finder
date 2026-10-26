@@ -1,10 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
-import * as dotenv from 'dotenv';
-dotenv.config({ path: '.env.local' });
+import { createAdminClient } from './supabaseAdmin';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key';
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createAdminClient();
 
 async function updateDepositRates() {
   console.log('Refreshing deposit_rates with verified Australian bank rates...');

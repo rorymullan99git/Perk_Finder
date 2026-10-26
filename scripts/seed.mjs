@@ -1,25 +1,24 @@
 import { createClient } from '@supabase/supabase-js';
+import * as dotenv from 'dotenv';
+dotenv.config({ path: '.env.local' });
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
-const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key';
+// Read-only connection check using the public (publishable) key.
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+  console.error('Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local');
+  process.exit(1);
+}
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-console.log('Testing Supabase Connection to:', SUPABASE_URL);
+console.log('Testing Supabase connection to:', SUPABASE_URL);
 
-async function run() {
-  const { data, error } = await supabase.from('banks').select('count');
-  if (error) {
-    console.log('Status: Tables not yet initialized in Supabase.');
-    console.log('Reason:', error.message);
-    console.log('\n--> Instructions to initialize Supabase tables:');
-    console.log('1. Open your Supabase Dashboard SQL Editor (https://supabase.com/dashboard)');
-    console.log('2. Copy the contents of supabase/schema.sql');
-    console.log('3. Paste and click "Run" in the SQL Editor.');
-    console.log('4. Once run, the RLS policies and tables will be live and ready for seeding!\n');
-    return;
-  }
-  console.log('Banks table is live! Current record count:', data);
+const { error } = await supabase.from('banks').select('id').limit(1);
+if (error) {
+  console.log('Tables not initialised yet:', error.message);
+  console.log('Run supabase/schema.sql in the Supabase SQL Editor, then `npm run seed:all`.');
+} else {
+  console.log('Banks table is live and publicly readable.');
 }
-
-run();

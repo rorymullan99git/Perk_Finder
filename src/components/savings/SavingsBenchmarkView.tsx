@@ -1,420 +1,117 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import { SAVINGS_ACCOUNTS_DATA } from '@/data/savingsRates';
-import { SavingsAccount } from '@/types';
-import { formatAud } from '@/lib/utils';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { estimateFirstYear } from '@/lib/savings';
+import { cn, formatAudWhole } from '@/lib/utils';
 import { PageHeader } from '@/components/ui/page-header';
-import { 
-  PiggyBank, 
-  CheckCircle2, 
-  AlertTriangle, 
-  DollarSign, 
-  Sparkles, 
-  ShieldCheck, 
-  Lock, 
-  HelpCircle,
-  Sliders,
-  ExternalLink
-} from 'lucide-react';
+import { AmountInput } from '@/components/ui/amount-input';
+import { Segmented } from '@/components/ui/segmented';
+import { ChevronDown } from 'lucide-react';
+
+type Filter = 'all' | 'unconditional' | 'conditional' | 'term_deposit';
+
+const FILTERS: { value: Filter; label: string }[] = [
+  { value: 'all', label: 'All' },
+  { value: 'unconditional', label: 'No conditions' },
+  { value: 'conditional', label: 'Bonus conditions' },
+  { value: 'term_deposit', label: 'Term deposits' },
+];
 
 export const SavingsBenchmarkView: React.FC = () => {
-  const [balanceAud, setBalanceAud] = useState<number>(35000);
-  const [balanceText, setBalanceText] = useState('35000');
-  const [filterType, setFilterType] = useState<'all' | 'unconditional' | 'conditional' | 'term_deposit'>('all');
-  const [selectedAccount, setSelectedAccount] = useState<SavingsAccount | null>(null);
+  const [balanceAud, setBalanceAud] = useState(25000);
+  const [filter, setFilter] = useState<Filter>('all');
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!selectedAccount) return;
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setSelectedAccount(null);
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [selectedAccount]);
-
-  const balancePresets = [10000, 25000, 50000, 100000, 250000];
-
-  // Calculate earnings for each account
-  const accountsWithCalculations = useMemo(() => {
-    return SAVINGS_ACCOUNTS_DATA.map((acc) => {
-      // Check if balance exceeds balanceCapAud
-      const effectiveBalance = acc.balanceCapAud ? Math.min(balanceAud, acc.balanceCapAud) : balanceAud;
-      const annualInterest = effectiveBalance * (acc.totalRatePercent / 100);
-      const monthlyInterest = annualInterest / 12;
-
-      return {
-        ...acc,
-        effectiveBalance,
-        annualInterest,
-        monthlyInterest,
-        isCapped: acc.balanceCapAud ? balanceAud > acc.balanceCapAud : false,
-      };
-    }).sort((a, b) => b.totalRatePercent - a.totalRatePercent);
-  }, [balanceAud]);
-
-  const filteredAccounts = useMemo(() => {
-    if (filterType === 'unconditional') {
-      return accountsWithCalculations.filter(a => a.isUnconditional && a.type === 'savings');
-    }
-    if (filterType === 'conditional') {
-      return accountsWithCalculations.filter(a => !a.isUnconditional && a.type === 'savings');
-    }
-    if (filterType === 'term_deposit') {
-      return accountsWithCalculations.filter(a => a.type === 'term_deposit');
-    }
-    return accountsWithCalculations;
-  }, [accountsWithCalculations, filterType]);
-
-  const topAccount = filteredAccounts[0];
+  const accounts = useMemo(() => {
+    return SAVINGS_ACCOUNTS_DATA.filter((a) => {
+      if (filter === 'unconditional') return a.type === 'savings' && a.isUnconditional;
+      if (filter === 'conditional') return a.type === 'savings' && !a.isUnconditional;
+      if (filter === 'term_deposit') return a.type === 'term_deposit';
+      return true;
+    })
+      .map((a) => ({ ...a, ...estimateFirstYear(a, balanceAud) }))
+      .sort((a, b) => b.firstYearInterest - a.firstYearInterest);
+  }, [balanceAud, filter]);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-300">
+    <div>
       <PageHeader
-        title="Stop letting inflation eat your cash."
-        description="Zero-hoop accounts, bonus-rate maximisers and term deposits, calculated on your exact balance."
+        title="Savings accounts"
+        description="Ranked by how much interest your balance would earn in the first year, including when intro rates end."
       />
 
-      {/* Interactive Deposit Calculator Controls */}
-      <div className="rounded-3xl border border-stone-200 bg-white p-5 md:p-7 shadow-sm dark:border-stone-800 dark:bg-stone-900">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
-          {/* Balance Input */}
-          <div className="md:col-span-7 space-y-2">
-            <div className="flex items-center justify-between">
-              <label htmlFor="balance" className="text-sm font-semibold text-stone-700 dark:text-stone-300">
-                Your savings balance (AUD)
-              </label>
-              <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
-                FCS Guarantee covers up to $250,000 per ADI
-              </span>
-            </div>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-stone-600">
-                $
-              </span>
-              <input
-                id="balance"
-                type="number"
-                inputMode="decimal"
-                min="100"
-                step="1000"
-                value={balanceText}
-                onChange={(e) => {
-                  setBalanceText(e.target.value);
-                  const n = parseFloat(e.target.value);
-                  if (Number.isFinite(n) && n >= 0) setBalanceAud(n);
-                }}
-                onBlur={() => setBalanceText(String(balanceAud))}
-                className="flex h-12 w-full rounded-2xl border border-stone-200 bg-white pl-9 pr-4 py-2 text-xl font-black text-stone-900 shadow-sm transition-colors focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100"
-              />
-            </div>
-            {/* Presets */}
-            <div className="flex flex-wrap items-center gap-1.5 pt-1">
-              <span className="text-xs font-bold uppercase tracking-wider text-stone-600 py-1 mr-1">Presets:</span>
-              <div className="inline-flex rounded-xl border border-stone-900/30 dark:border-stone-700 bg-stone-100 dark:bg-stone-950 p-0.5 divide-x divide-stone-900/30 dark:divide-stone-700 shadow-sm">
-                {balancePresets.map((amount) => (
-                  <button
-                    key={amount}
-                    onClick={() => {
-                      setBalanceAud(amount);
-                      setBalanceText(String(amount));
-                    }}
-                    aria-pressed={balanceAud === amount}
-                    className={`text-xs px-2.5 py-1 font-bold transition-all first:rounded-l-lg last:rounded-r-lg ${
-                      balanceAud === amount
-                        ? 'bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900 shadow-sm'
-                        : 'text-stone-700 hover:text-stone-950 hover:bg-white dark:text-stone-300 dark:hover:text-white dark:hover:bg-stone-800'
-                    }`}
-                  >
-                    ${(amount / 1000).toFixed(0)}k
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Top earner preview card */}
-          {topAccount && (
-            <div className="md:col-span-5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900 p-4 space-y-1">
-              <span className="text-xs uppercase tracking-wider font-bold text-emerald-800 dark:text-emerald-300">
-                Top Rate in Selected Filter:
-              </span>
-              <div className="flex items-baseline justify-between">
-                <span className="font-extrabold text-base text-stone-900 dark:text-white truncate">
-                  {topAccount.bank} ({topAccount.totalRatePercent}% p.a.)
-                </span>
-                <span className="text-xl font-black text-emerald-700 dark:text-emerald-400">
-                  +{formatAud(topAccount.annualInterest)}/yr
-                </span>
-              </div>
-              <p className="text-xs text-stone-600 dark:text-stone-400">
-                Generates approx <strong>{formatAud(topAccount.monthlyInterest)}</strong> interest every month on your ${balanceAud.toLocaleString()} deposit.
-              </p>
-            </div>
-          )}
-        </div>
+      <div className="max-w-xs">
+        <AmountInput id="balance" label="Your balance" value={balanceAud} step={1000} onChange={setBalanceAud} />
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex flex-wrap gap-2 items-center justify-between">
-        <div className="inline-flex flex-wrap rounded-xl border border-stone-900/30 dark:border-stone-700 bg-stone-100 dark:bg-stone-950 p-0.5 divide-x divide-stone-900/30 dark:divide-stone-700 shadow-sm">
-          <button
-            onClick={() => setFilterType('all')}
-            aria-pressed={filterType === 'all'}
-            className={`px-4 py-2 text-xs font-bold rounded-l-lg transition-all ${
-              filterType === 'all'
-                ? 'bg-emerald-700 text-white shadow-sm'
-                : 'text-stone-700 hover:text-stone-950 hover:bg-white dark:text-stone-300 dark:hover:text-white dark:hover:bg-stone-800'
-            }`}
-          >
-            All Accounts ({accountsWithCalculations.length})
-          </button>
-          <button
-            onClick={() => setFilterType('unconditional')}
-            aria-pressed={filterType === 'unconditional'}
-            className={`px-4 py-2 text-xs font-bold transition-all ${
-              filterType === 'unconditional'
-                ? 'bg-emerald-700 text-white shadow-sm'
-                : 'text-stone-700 hover:text-stone-950 hover:bg-white dark:text-stone-300 dark:hover:text-white dark:hover:bg-stone-800'
-            }`}
-          >
-            Zero Hoops (Unconditional)
-          </button>
-          <button
-            onClick={() => setFilterType('conditional')}
-            aria-pressed={filterType === 'conditional'}
-            className={`px-4 py-2 text-xs font-bold transition-all ${
-              filterType === 'conditional'
-                ? 'bg-emerald-700 text-white shadow-sm'
-                : 'text-stone-700 hover:text-stone-950 hover:bg-white dark:text-stone-300 dark:hover:text-white dark:hover:bg-stone-800'
-            }`}
-          >
-            High-Interest Maximisers
-          </button>
-          <button
-            onClick={() => setFilterType('term_deposit')}
-            aria-pressed={filterType === 'term_deposit'}
-            className={`px-4 py-2 text-xs font-bold rounded-r-lg transition-all ${
-              filterType === 'term_deposit'
-                ? 'bg-emerald-700 text-white shadow-sm'
-                : 'text-stone-700 hover:text-stone-950 hover:bg-white dark:text-stone-300 dark:hover:text-white dark:hover:bg-stone-800'
-            }`}
-          >
-            Fixed Term Deposits
-          </button>
-        </div>
-
-        <span className="text-xs text-stone-600">
-          Hand-entered rate snapshot, not live. Confirm on the bank&apos;s page before you apply.
-        </span>
+      <div className="mt-6">
+        <Segmented label="Account type" options={FILTERS} value={filter} onChange={setFilter} />
       </div>
 
-      {filteredAccounts.length === 0 && (
-        <div className="rounded-2xl border border-dashed border-stone-300 py-12 text-center text-sm text-stone-600">
-          No accounts in this filter.
-        </div>
-      )}
+      <ol className="mt-4 divide-y divide-stone-100 border-y border-stone-100">
+        {accounts.map((account) => {
+          const isOpen = expandedId === account.id;
+          const tags = [
+            account.bank,
+            account.type === 'term_deposit'
+              ? `${account.termMonths} month term`
+              : account.isUnconditional
+                ? 'No conditions'
+                : 'Conditions apply',
+            account.introMonths ? `Intro rate for ${account.introMonths} months` : null,
+          ].filter(Boolean);
 
-      {/* Savings Accounts Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredAccounts.map((account) => {
           return (
-            <div
-              key={account.id}
-              className="flex flex-col justify-between rounded-2xl border border-stone-200/80 bg-white p-5 shadow-sm hover:border-stone-300 dark:border-stone-800 dark:bg-stone-900 dark:hover:border-stone-700 transition-all"
-            >
-              <div>
-                {/* Header */}
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-stone-600">
-                      {account.bank}
-                    </span>
-                    <h3 className="font-bold text-base text-stone-900 dark:text-white leading-tight">
-                      {account.accountName}
-                    </h3>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-black text-emerald-700 dark:text-emerald-400">
-                      {account.totalRatePercent.toFixed(2)}%
-                    </div>
-                    <span className="text-xs text-stone-600 uppercase font-semibold">p.a.</span>
-                  </div>
-                </div>
+            <li key={account.id}>
+              <button
+                onClick={() => setExpandedId(isOpen ? null : account.id)}
+                aria-expanded={isOpen}
+                className="flex w-full items-center gap-4 py-3 text-left hover:bg-stone-50"
+              >
+                <span className="min-w-0 flex-1">
+                  <span className="block">{account.accountName}</span>
+                  <span className="block text-sm text-stone-500">{tags.join(' · ')}</span>
+                </span>
+                <span className="shrink-0 text-right">
+                  <span className="block tabular-nums">{formatAudWhole(account.firstYearInterest)}<span className="text-stone-500">/yr</span></span>
+                  <span className="block text-sm tabular-nums text-stone-500">{account.totalRatePercent.toFixed(2)}%</span>
+                </span>
+                <ChevronDown className={cn('h-4 w-4 shrink-0 text-stone-400 transition-transform', isOpen && 'rotate-180')} />
+              </button>
 
-                {/* Badge tags */}
-                <div className="flex flex-wrap gap-1 mb-3">
-                  {account.highlightBadge && (
-                    <Badge variant="brand" className="text-xs py-0">
-                      {account.highlightBadge}
-                    </Badge>
-                  )}
-                  {account.isUnconditional ? (
-                    <Badge variant="success" className="text-xs py-0">
-                      Zero Hoops
-                    </Badge>
-                  ) : (
-                    <Badge variant="warning" className="text-xs py-0">
-                      Conditional
-                    </Badge>
-                  )}
-                  {account.type === 'term_deposit' && (
-                    <Badge variant="secondary" className="text-xs py-0">
-                      Fixed {account.termMonths}M
-                    </Badge>
-                  )}
-                </div>
-
-                {/* Calculated returns box */}
-                <div className="rounded-xl bg-stone-50 dark:bg-stone-800/80 p-3 mb-3 border border-stone-100 dark:border-stone-700/60">
-                  <div className="flex justify-between items-center text-xs mb-1">
-                    <span className="text-stone-600">Monthly Interest:</span>
-                    <span className="font-extrabold text-stone-900 dark:text-white">
-                      +{formatAud(account.monthlyInterest)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-stone-600">12-Month Total:</span>
-                    <span className="font-black text-emerald-700 dark:text-emerald-400">
-                      +{formatAud(account.annualInterest)}
-                    </span>
-                  </div>
+              {isOpen && (
+                <div className="space-y-3 pb-4 pr-8 text-sm text-stone-600">
+                  <ul className="list-disc space-y-1 pl-5">
+                    {account.conditions.map((c, i) => (
+                      <li key={i}>{c}</li>
+                    ))}
+                  </ul>
                   {account.isCapped && (
-                    <div className="mt-2 text-xs text-amber-700 dark:text-amber-300 flex items-center gap-1">
-                      <AlertTriangle className="h-3 w-3 flex-shrink-0" />
-                      <span>Rate capped at ${account.balanceCapAud?.toLocaleString()} balance.</span>
-                    </div>
+                    <p>Only the first {formatAudWhole(account.balanceCapAud!)} earns this rate.</p>
                   )}
-                </div>
-
-                {/* Conditions breakdown */}
-                <div className="space-y-1 text-xs text-stone-600 dark:text-stone-300">
-                  <span className="font-bold text-xs uppercase tracking-wider text-stone-600">
-                    Requirements:
-                  </span>
-                  {account.conditions.map((cond, i) => (
-                    <div key={i} className="flex items-start gap-1.5">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-700 dark:text-emerald-400 flex-shrink-0 mt-0.5" />
-                      <span className="line-clamp-2">{cond}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Bottom notes */}
-              <div className="mt-4 pt-3 border-t border-stone-100 dark:border-stone-800 text-xs text-stone-600 flex items-center justify-between">
-                <span>Gov FCS Protected</span>
-                <div className="flex items-center gap-3">
                   {account.directUrl && (
                     <a
                       href={account.directUrl}
                       target="_blank"
-                      rel="noreferrer"
-                      className="text-stone-600 hover:text-stone-800 dark:hover:text-stone-200 flex items-center gap-1 font-medium"
-                      title="Visit official bank product page"
+                      rel="noopener noreferrer"
+                      className="inline-block text-stone-900 underline underline-offset-4"
                     >
-                      <span>Bank PDS</span>
-                      <ExternalLink className="h-3 w-3" />
+                      View on {account.bank}&apos;s site
                     </a>
                   )}
-                  <button
-                    onClick={() => setSelectedAccount(account)}
-                    className="text-emerald-700 dark:text-emerald-400 font-bold hover:underline"
-                  >
-                    Criteria →
-                  </button>
                 </div>
-              </div>
-            </div>
+              )}
+            </li>
           );
         })}
-      </div>
+      </ol>
 
-      {/* Account Details Modal */}
-      {selectedAccount && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Account criteria"
-          onClick={() => setSelectedAccount(null)}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/70 backdrop-blur-sm animate-in fade-in"
-        >
-          <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl dark:bg-stone-900 border border-stone-200 dark:border-stone-800 space-y-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-stone-600">
-                  {selectedAccount.bank}
-                </span>
-                <h3 className="text-xl font-black text-stone-900 dark:text-white">
-                  {selectedAccount.accountName}
-                </h3>
-              </div>
-              <button
-                onClick={() => setSelectedAccount(null)}
-                aria-label="Close"
-                className="rounded-full p-2 text-stone-600 hover:bg-stone-100 dark:hover:bg-stone-800"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex items-center justify-between">
-              <div>
-                <span className="text-xs text-emerald-800 dark:text-emerald-300 font-medium">Interest Rate</span>
-                <div className="text-3xl font-black text-emerald-800 dark:text-emerald-300">
-                  {selectedAccount.totalRatePercent.toFixed(2)}% <span className="text-sm font-semibold">p.a.</span>
-                </div>
-              </div>
-              <div className="text-right">
-                <span className="text-xs text-emerald-800 dark:text-emerald-300 font-medium">Rate Structure</span>
-                <div className="text-xs font-bold text-stone-700 dark:text-stone-300">
-                  {selectedAccount.baseRatePercent}% Base + {selectedAccount.bonusRatePercent}% Bonus
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-2 text-xs">
-              <span className="font-bold text-stone-700 dark:text-stone-300 uppercase tracking-wider">
-                Monthly Hoops & Criteria:
-              </span>
-              <div className="space-y-2 p-3.5 rounded-2xl bg-stone-50 dark:bg-stone-800 text-stone-700 dark:text-stone-300">
-                {selectedAccount.conditions.map((cond, i) => (
-                  <div key={i} className="flex items-start gap-2">
-                    <span className="text-emerald-700 font-bold">•</span>
-                    <span>{cond}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <p className="text-xs text-stone-600 dark:text-stone-400 leading-relaxed">
-              {selectedAccount.notes}
-            </p>
-
-            <div className="pt-2 flex items-center justify-between">
-              {selectedAccount.directUrl ? (
-                <a
-                  href={selectedAccount.directUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-700 text-white font-semibold hover:bg-emerald-800 text-xs transition-colors"
-                >
-                  <span>Visit Official Bank Page</span>
-                  <ExternalLink className="h-3.5 w-3.5" />
-                </a>
-              ) : <div />}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSelectedAccount(null)}
-              >
-                Close
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <p className="mt-6 text-xs text-stone-500">
+        Rates are a manually collected snapshot and can change at any time. Confirm on the bank&apos;s site before
+        opening an account. Deposits up to $250,000 per person per bank are covered by the Australian Government&apos;s
+        Financial Claims Scheme.
+      </p>
     </div>
   );
 };

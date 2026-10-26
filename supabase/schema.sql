@@ -105,39 +105,31 @@ ALTER TABLE merchants ENABLE ROW LEVEL SECURITY;
 ALTER TABLE perk_offers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE deposit_rates ENABLE ROW LEVEL SECURITY;
 
-DO $$ 
-BEGIN 
-    -- Public Read 
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public read-only banks') THEN 
-        CREATE POLICY "Public read-only banks" ON banks FOR SELECT USING (true); 
-    END IF; 
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public read-only products') THEN 
-        CREATE POLICY "Public read-only products" ON products FOR SELECT USING (true); 
-    END IF; 
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public read-only merchants') THEN 
-        CREATE POLICY "Public read-only merchants" ON merchants FOR SELECT USING (true); 
-    END IF; 
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public read-only perk_offers') THEN 
-        CREATE POLICY "Public read-only perk_offers" ON perk_offers FOR SELECT USING (true); 
-    END IF; 
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public read-only deposit_rates') THEN 
-        CREATE POLICY "Public read-only deposit_rates" ON deposit_rates FOR SELECT USING (true); 
-    END IF;      
-    
-    -- Seeding & Ingestion Write Permissions 
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow write banks') THEN 
-        CREATE POLICY "Allow write banks" ON banks FOR ALL USING (true) WITH CHECK (true); 
-    END IF; 
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow write products') THEN 
-        CREATE POLICY "Allow write products" ON products FOR ALL USING (true) WITH CHECK (true); 
-    END IF; 
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow write merchants') THEN 
-        CREATE POLICY "Allow write merchants" ON merchants FOR ALL USING (true) WITH CHECK (true); 
-    END IF; 
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow write perk_offers') THEN 
-        CREATE POLICY "Allow write perk_offers" ON perk_offers FOR ALL USING (true) WITH CHECK (true); 
-    END IF; 
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow write deposit_rates') THEN 
-        CREATE POLICY "Allow write deposit_rates" ON deposit_rates FOR ALL USING (true) WITH CHECK (true); 
-    END IF; 
+-- Public read-only access. There are deliberately NO insert/update/delete
+-- policies: with RLS enabled, the browser (anon / publishable key) can only
+-- read. Seed scripts write with the service role key, which bypasses RLS.
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public read-only banks') THEN
+        CREATE POLICY "Public read-only banks" ON banks FOR SELECT TO anon, authenticated USING (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public read-only products') THEN
+        CREATE POLICY "Public read-only products" ON products FOR SELECT TO anon, authenticated USING (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public read-only merchants') THEN
+        CREATE POLICY "Public read-only merchants" ON merchants FOR SELECT TO anon, authenticated USING (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public read-only perk_offers') THEN
+        CREATE POLICY "Public read-only perk_offers" ON perk_offers FOR SELECT TO anon, authenticated USING (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public read-only deposit_rates') THEN
+        CREATE POLICY "Public read-only deposit_rates" ON deposit_rates FOR SELECT TO anon, authenticated USING (true);
+    END IF;
 END $$;
+
+-- Remove the old world-writable policies if an earlier version of this file was applied.
+DROP POLICY IF EXISTS "Allow write banks" ON banks;
+DROP POLICY IF EXISTS "Allow write products" ON products;
+DROP POLICY IF EXISTS "Allow write merchants" ON merchants;
+DROP POLICY IF EXISTS "Allow write perk_offers" ON perk_offers;
+DROP POLICY IF EXISTS "Allow write deposit_rates" ON deposit_rates;

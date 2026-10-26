@@ -111,6 +111,8 @@ export interface SavingsAccount {
   cardTransactionsRequired?: number;
   growBalanceRequired?: boolean;
   balanceCapAud?: number;
+  introMonths?: number; // totalRatePercent only applies for this many months
+  revertRatePercent?: number; // rate after the intro period ends
   notes: string;
   highlightBadge?: string;
   directUrl?: string;

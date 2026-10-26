@@ -17,6 +17,8 @@ export const SAVINGS_ACCOUNTS_DATA: SavingsAccount[] = [
     cardTransactionsRequired: 5,
     growBalanceRequired: true,
     balanceCapAud: 500000,
+    introMonths: 4,
+    revertRatePercent: 5.65,
     conditions: [
       '6.25% p.a. intro rate for 4 months for new customers',
       '5.65% ongoing bonus rate thereafter',
@@ -39,6 +41,8 @@ export const SAVINGS_ACCOUNTS_DATA: SavingsAccount[] = [
     type: 'savings',
     isUnconditional: true,
     balanceCapAud: 250000,
+    introMonths: 4,
+    revertRatePercent: 4.15,
     conditions: [
       'Introductory 6.15% p.a. for first 4 months for new customers',
       'Reverts to 4.15% p.a. ongoing standard rate thereafter',
@@ -175,6 +179,8 @@ export const SAVINGS_ACCOUNTS_DATA: SavingsAccount[] = [
     type: 'savings',
     isUnconditional: true,
     balanceCapAud: 250000,
+    introMonths: 4,
+    revertRatePercent: 1.50,
     conditions: [
       'Introductory 5.10% p.a. for first 4 months for new customers',
       'Reverts to 1.50% p.a. standard variable rate thereafter',
