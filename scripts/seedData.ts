@@ -4,7 +4,7 @@ import {
   MerchantDbRow, 
   PerkOfferDbRow, 
   DepositRateDbRow 
-} from './types';
+} from './dbTypes';
 import { CARDS_DATA } from '@/data/cards';
 import { MERCHANTS_DATA } from '@/data/merchants';
 import { PERK_OFFERS_DATA } from '@/data/perkOffers';

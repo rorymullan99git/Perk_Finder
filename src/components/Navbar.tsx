@@ -1,13 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { usePerkStore, AppTab } from '@/store/usePerkStore';
-import { Sparkles, PiggyBank, Gift, Scale, Wallet, Database } from 'lucide-react';
-import { SupabaseSyncModal } from '@/components/supabase/SupabaseSyncModal';
+import { Sparkles, PiggyBank, Gift, Scale, Wallet } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const { activeTab, setActiveTab, heldCardIds } = usePerkStore();
-  const [showSupabaseModal, setShowSupabaseModal] = useState(false);
 
   const navItems: { id: AppTab; label: string; icon: React.ElementType; badge?: string }[] = [
     { id: 'ranker', label: 'Optimizer', icon: Sparkles },
@@ -71,20 +69,8 @@ export const Navbar: React.FC = () => {
               );
             })}
           </nav>
-
-          {/* Utility */}
-          <button
-            onClick={() => setShowSupabaseModal(true)}
-            className="p-2 rounded-lg text-stone-500 hover:text-stone-900 hover:bg-stone-100 dark:text-stone-400 dark:hover:bg-stone-800 transition-colors"
-            title="Cloud sync status"
-            aria-label="Cloud sync status"
-          >
-            <Database className="h-4 w-4" />
-          </button>
         </div>
       </div>
-
-      <SupabaseSyncModal open={showSupabaseModal} onOpenChange={setShowSupabaseModal} />
 
       {/* Mobile nav */}
       <nav

@@ -70,39 +70,29 @@ ALTER TABLE merchants ENABLE ROW LEVEL SECURITY;
 ALTER TABLE perk_offers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE deposit_rates ENABLE ROW LEVEL SECURITY;
 
-DO $$ 
-BEGIN 
-    -- Public Read 
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public read-only banks') THEN 
-        CREATE POLICY "Public read-only banks" ON banks FOR SELECT USING (true); 
-    END IF; 
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public read-only products') THEN 
-        CREATE POLICY "Public read-only products" ON products FOR SELECT USING (true); 
-    END IF; 
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public read-only merchants') THEN 
-        CREATE POLICY "Public read-only merchants" ON merchants FOR SELECT USING (true); 
-    END IF; 
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public read-only perk_offers') THEN 
-        CREATE POLICY "Public read-only perk_offers" ON perk_offers FOR SELECT USING (true); 
-    END IF; 
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public read-only deposit_rates') THEN 
-        CREATE POLICY "Public read-only deposit_rates" ON deposit_rates FOR SELECT USING (true); 
-    END IF;      
-    
-    -- Seeding & Ingestion Write Permissions 
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow write banks') THEN 
-        CREATE POLICY "Allow write banks" ON banks FOR ALL USING (true) WITH CHECK (true); 
-    END IF; 
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow write products') THEN 
-        CREATE POLICY "Allow write products" ON products FOR ALL USING (true) WITH CHECK (true); 
-    END IF; 
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow write merchants') THEN 
-        CREATE POLICY "Allow write merchants" ON merchants FOR ALL USING (true) WITH CHECK (true); 
-    END IF; 
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow write perk_offers') THEN 
-        CREATE POLICY "Allow write perk_offers" ON perk_offers FOR ALL USING (true) WITH CHECK (true); 
-    END IF; 
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow write deposit_rates') THEN 
-        CREATE POLICY "Allow write deposit_rates" ON deposit_rates FOR ALL USING (true) WITH CHECK (true); 
-    END IF; 
-END $$;
+-- Row Level Security: the public (anon) role may READ only. There are deliberately
+-- no INSERT/UPDATE/DELETE policies, so writes are rejected for anon and authenticated
+-- users. Seeding and ingestion use the service-role key (server-side only), which
+-- bypasses RLS. See scripts/seed.ts.
+
+-- Remove the permissive write policies created by earlier versions of this schema.
+DROP POLICY IF EXISTS "Allow write banks" ON banks;
+DROP POLICY IF EXISTS "Allow write products" ON products;
+DROP POLICY IF EXISTS "Allow write merchants" ON merchants;
+DROP POLICY IF EXISTS "Allow write perk_offers" ON perk_offers;
+DROP POLICY IF EXISTS "Allow write deposit_rates" ON deposit_rates;
+
+DROP POLICY IF EXISTS "Public read-only banks" ON banks;
+DROP POLICY IF EXISTS "Public read-only products" ON products;
+DROP POLICY IF EXISTS "Public read-only merchants" ON merchants;
+DROP POLICY IF EXISTS "Public read-only perk_offers" ON perk_offers;
+DROP POLICY IF EXISTS "Public read-only deposit_rates" ON deposit_rates;
+
+CREATE POLICY "Public read-only banks" ON banks FOR SELECT USING (true);
+CREATE POLICY "Public read-only products" ON products FOR SELECT USING (true);
+CREATE POLICY "Public read-only merchants" ON merchants FOR SELECT USING (true);
+CREATE POLICY "Public read-only perk_offers" ON perk_offers FOR SELECT USING (true);
+CREATE POLICY "Public read-only deposit_rates" ON deposit_rates FOR SELECT USING (true);
+
+-- Belt and braces: strip table-level write grants from the API roles as well.
+REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON banks, products, merchants, perk_offers, deposit_rates FROM anon, authenticated;

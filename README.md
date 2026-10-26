@@ -20,11 +20,11 @@ Australians lose thousands of dollars each year by swiping the wrong debit/credi
 
 ## 🚀 Tech Stack
 
-- **Framework**: Next.js 14+ (App Router)
+- **Framework**: Next.js 16 (App Router)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS & Lucide React
 - **State Management**: Zustand with `persist` middleware
-- **Backend / Database**: Supabase (`@supabase/supabase-js`, `@supabase/ssr`, PostgreSQL with RLS)
+- **Backend / Database**: Supabase (PostgreSQL with read-only RLS, seeded server-side)
 - **Code Review**: CodeRabbit AI integration
 
 ---
@@ -42,32 +42,19 @@ cd Perk_Finder
 npm install
 ```
 
-### 3. Environment Configuration
-Copy the template and fill in your Supabase credentials:
-```bash
-cp .env.example .env.local
-```
-Update `.env.local`:
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-publishable-key
-```
+### 3. Database Setup (Optional)
+The app UI is currently static and reads its data from `src/data/*.ts`. Supabase is an optional mirror of that data.
+1. Run `supabase/schema.sql` in the Supabase SQL Editor. It enables RLS with **read-only** public policies and removes any write policies from earlier versions.
+2. Copy `.env.example` to `.env.local` and fill in `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`. The service-role key is server-side only: never prefix it with `NEXT_PUBLIC_` and never commit it.
+3. Seed (safe to re-run): `npm run seed`
 
-### 4. Database Setup (Optional)
-To sync rates with your Supabase database:
-1. Run the schema script in the Supabase SQL Editor from `supabase/schema.sql`.
-2. Seed verified Australian rates:
-   ```bash
-   npx tsx scripts/seed-rates.ts
-   ```
-
-### 5. Development Server
+### 4. Development Server
 ```bash
 npm run dev
 ```
 Open [http://localhost:3000](http://localhost:3000) with your browser.
 
-### 6. Production Build
+### 5. Production Build
 ```bash
 npm run build
 npm run start
@@ -79,6 +66,8 @@ npm run start
 
 - Client-side first: Card selections (`heldCardIds`), favorite merchants, and spend preferences remain private in local browser storage (`localStorage`).
 - Zero tracking or affiliate ranking manipulation.
+- The public database role is read-only. Writes require the server-side service-role key.
+- Responses ship a strict CSP, `X-Frame-Options: DENY`, HSTS, `nosniff`, `Referrer-Policy` and `Permissions-Policy` (see `next.config.mjs`).
 
 ---
 
