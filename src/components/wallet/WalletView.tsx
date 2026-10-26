@@ -142,7 +142,7 @@ export const WalletView: React.FC = () => {
       <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm dark:border-stone-800 dark:bg-stone-900 flex flex-col md:flex-row gap-3 items-center justify-between">
         {/* Search input */}
         <div className="relative w-full md:w-80">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-600" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-600 dark:text-stone-400" />
           <input
             type="text"
             value={search}
@@ -199,7 +199,7 @@ export const WalletView: React.FC = () => {
       </div>
 
       {filteredCards.length === 0 && (
-        <div className="rounded-2xl border border-dashed border-stone-300 py-12 text-center text-sm text-stone-600">
+        <div className="rounded-2xl border border-dashed border-stone-300 py-12 text-center text-sm text-stone-600 dark:text-stone-400">
           No cards match those filters. Try clearing the search or switching off &ldquo;Held only&rdquo;.
         </div>
       )}
@@ -236,7 +236,7 @@ export const WalletView: React.FC = () => {
                     {isHeld && <Check className="h-4 w-4 stroke-[3]" />}
                   </div>
                   <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-stone-600">
+                    <span className="text-xs font-bold uppercase tracking-wider text-stone-600 dark:text-stone-400">
                       {card.issuer}
                     </span>
                     <h3 className="font-bold text-base text-stone-900 dark:text-white leading-tight">
@@ -289,10 +289,10 @@ export const WalletView: React.FC = () => {
 
               {/* Status bar */}
               <div className="mt-4 pt-3 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between text-xs font-semibold">
-                <span className={isHeld ? 'text-emerald-700 dark:text-emerald-400' : 'text-stone-600'}>
+                <span className={isHeld ? 'text-emerald-700 dark:text-emerald-400' : 'text-stone-600 dark:text-stone-400'}>
                   {isHeld ? '✓ Card in Your Deck' : '+ Click to Add'}
                 </span>
-                <span className="text-xs text-stone-600 uppercase font-mono">
+                <span className="text-xs text-stone-600 dark:text-stone-400 uppercase font-mono">
                   {card.network}
                 </span>
               </div>

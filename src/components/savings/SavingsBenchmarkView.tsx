@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { SAVINGS_ACCOUNTS_DATA, SAVINGS_RATES_AS_OF } from '@/data/savingsRates';
 import { projectInterest, isEligibleForAge, isAgeRestricted } from '@/lib/savings';
 import { SavingsAccount } from '@/types';
 import { formatAud } from '@/lib/utils';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
 import { 
@@ -28,13 +29,6 @@ export const SavingsBenchmarkView: React.FC = () => {
   const [ageText, setAgeText] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'unconditional' | 'conditional' | 'term_deposit'>('all');
   const [selectedAccount, setSelectedAccount] = useState<SavingsAccount | null>(null);
-
-  useEffect(() => {
-    if (!selectedAccount) return;
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setSelectedAccount(null);
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [selectedAccount]);
 
   const balancePresets = [10000, 25000, 50000, 100000, 250000];
 
@@ -86,7 +80,7 @@ export const SavingsBenchmarkView: React.FC = () => {
               </span>
             </div>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-stone-600">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-stone-600 dark:text-stone-400">
                 $
               </span>
               <input
@@ -107,7 +101,7 @@ export const SavingsBenchmarkView: React.FC = () => {
             </div>
             {/* Presets */}
             <div className="flex flex-wrap items-center gap-1.5 pt-1">
-              <span className="text-xs font-bold uppercase tracking-wider text-stone-600 py-1 mr-1">Presets:</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-stone-600 dark:text-stone-400 py-1 mr-1">Presets:</span>
               <div className="inline-flex rounded-xl border border-stone-900/30 dark:border-stone-700 bg-stone-100 dark:bg-stone-950 p-0.5 divide-x divide-stone-900/30 dark:divide-stone-700 shadow-sm">
                 {balancePresets.map((amount) => (
                   <button
@@ -132,7 +126,7 @@ export const SavingsBenchmarkView: React.FC = () => {
 
           {/* Age eligibility */}
           <div className="md:col-span-12 flex flex-wrap items-center gap-2 -mt-3">
-            <label htmlFor="age" className="text-xs font-bold uppercase tracking-wider text-stone-600">
+            <label htmlFor="age" className="text-xs font-bold uppercase tracking-wider text-stone-600 dark:text-stone-400">
               Your age (optional)
             </label>
             <input
@@ -223,13 +217,13 @@ export const SavingsBenchmarkView: React.FC = () => {
           </button>
         </div>
 
-        <span className="text-xs text-stone-600">
+        <span className="text-xs text-stone-600 dark:text-stone-400">
           Hand-entered rate snapshot as of {SAVINGS_RATES_AS_OF}, not live. Confirm on the bank&apos;s page before you apply.
         </span>
       </div>
 
       {filteredAccounts.length === 0 && (
-        <div className="rounded-2xl border border-dashed border-stone-300 py-12 text-center text-sm text-stone-600">
+        <div className="rounded-2xl border border-dashed border-stone-300 py-12 text-center text-sm text-stone-600 dark:text-stone-400">
           No accounts in this filter.
         </div>
       )}
@@ -246,7 +240,7 @@ export const SavingsBenchmarkView: React.FC = () => {
                 {/* Header */}
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-stone-600">
+                    <span className="text-xs font-bold uppercase tracking-wider text-stone-600 dark:text-stone-400">
                       {account.bank}
                     </span>
                     <h3 className="font-bold text-base text-stone-900 dark:text-white leading-tight">
@@ -257,7 +251,7 @@ export const SavingsBenchmarkView: React.FC = () => {
                     <div className="text-2xl font-black text-emerald-700 dark:text-emerald-400">
                       {account.totalRatePercent.toFixed(2)}%
                     </div>
-                    <span className="text-xs text-stone-600 uppercase font-semibold">p.a.</span>
+                    <span className="text-xs text-stone-600 dark:text-stone-400 uppercase font-semibold">p.a.</span>
                   </div>
                 </div>
 
@@ -297,13 +291,13 @@ export const SavingsBenchmarkView: React.FC = () => {
                 {/* Calculated returns box */}
                 <div className="rounded-xl bg-stone-50 dark:bg-stone-800/80 p-3 mb-3 border border-stone-100 dark:border-stone-700/60">
                   <div className="flex justify-between items-center text-xs mb-1">
-                    <span className="text-stone-600">Avg. Monthly Interest:</span>
+                    <span className="text-stone-600 dark:text-stone-400">Avg. Monthly Interest:</span>
                     <span className="font-extrabold text-stone-900 dark:text-white">
                       +{formatAud(account.monthlyAud)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-stone-600">
+                    <span className="text-stone-600 dark:text-stone-400">
                       {account.horizonMonths === 12 ? '12-Month Total:' : `Interest over ${account.horizonMonths}-month term:`}
                     </span>
                     <span className="font-black text-emerald-700 dark:text-emerald-400">
@@ -323,7 +317,7 @@ export const SavingsBenchmarkView: React.FC = () => {
 
                 {/* Conditions breakdown */}
                 <div className="space-y-1 text-xs text-stone-600 dark:text-stone-300">
-                  <span className="font-bold text-xs uppercase tracking-wider text-stone-600">
+                  <span className="font-bold text-xs uppercase tracking-wider text-stone-600 dark:text-stone-400">
                     Requirements:
                   </span>
                   {account.conditions.map((cond, i) => (
@@ -336,7 +330,7 @@ export const SavingsBenchmarkView: React.FC = () => {
               </div>
 
               {/* Bottom notes */}
-              <div className="mt-4 pt-3 border-t border-stone-100 dark:border-stone-800 text-xs text-stone-600 flex items-center justify-between">
+              <div className="mt-4 pt-3 border-t border-stone-100 dark:border-stone-800 text-xs text-stone-600 dark:text-stone-400 flex items-center justify-between">
                 <span>{account.fcsProtected ? 'Gov FCS Protected' : 'Check FCS cover with provider'}</span>
                 <div className="flex items-center gap-3">
                   {account.directUrl && (
@@ -344,7 +338,7 @@ export const SavingsBenchmarkView: React.FC = () => {
                       href={account.directUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-stone-600 hover:text-stone-800 dark:hover:text-stone-200 flex items-center gap-1 font-medium"
+                      className="text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 flex items-center gap-1 font-medium"
                       title="Visit official bank product page"
                     >
                       <span>Bank PDS</span>
@@ -366,30 +360,15 @@ export const SavingsBenchmarkView: React.FC = () => {
 
       {/* Account Details Modal */}
       {selectedAccount && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Account criteria"
-          onClick={() => setSelectedAccount(null)}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/70 backdrop-blur-sm animate-in fade-in"
-        >
-          <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl dark:bg-stone-900 border border-stone-200 dark:border-stone-800 space-y-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-stone-600">
-                  {selectedAccount.bank}
-                </span>
-                <h3 className="text-xl font-black text-stone-900 dark:text-white">
-                  {selectedAccount.accountName}
-                </h3>
-              </div>
-              <button
-                onClick={() => setSelectedAccount(null)}
-                aria-label="Close"
-                className="rounded-full p-2 text-stone-600 hover:bg-stone-100 dark:hover:bg-stone-800"
-              >
-                ✕
-              </button>
+        <Dialog open onOpenChange={(o) => !o && setSelectedAccount(null)} label="Account criteria">
+          <div className="space-y-4">
+            <div className="pr-10">
+              <span className="text-xs font-bold uppercase tracking-wider text-stone-600 dark:text-stone-400">
+                {selectedAccount.bank}
+              </span>
+              <h3 className="text-xl font-black text-stone-900 dark:text-white">
+                {selectedAccount.accountName}
+              </h3>
             </div>
 
             <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex items-center justify-between">
@@ -446,7 +425,7 @@ export const SavingsBenchmarkView: React.FC = () => {
               </Button>
             </div>
           </div>
-        </div>
+        </Dialog>
       )}
     </div>
   );

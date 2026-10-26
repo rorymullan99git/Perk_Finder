@@ -124,7 +124,7 @@ export const GiftCardMarketplaceView: React.FC = () => {
       <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm dark:border-stone-800 dark:bg-stone-900 space-y-4">
         <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
           <div className="relative w-full md:w-96">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-600" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-600 dark:text-stone-400" />
             <input
               type="text"
               value={search}
@@ -136,7 +136,7 @@ export const GiftCardMarketplaceView: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-3 w-full md:w-auto justify-end">
-            <span className="text-xs text-stone-600 whitespace-nowrap">Example Spend:</span>
+            <span className="text-xs text-stone-600 dark:text-stone-400 whitespace-nowrap">Example Spend:</span>
             <div className="inline-flex rounded-xl border border-stone-900/30 dark:border-stone-700 bg-stone-100 dark:bg-stone-950 p-0.5 divide-x divide-stone-900/30 dark:divide-stone-700 shadow-sm">
               {[100, 200, 500, 1000].map((amt) => (
                 <button
@@ -160,7 +160,7 @@ export const GiftCardMarketplaceView: React.FC = () => {
         <div className="flex flex-col md:flex-row gap-3 pt-2 border-t border-stone-200 dark:border-stone-800 justify-between items-start md:items-center">
           {/* Provider Pills */}
           <div className="flex flex-wrap gap-1.5 items-center">
-            <span className="text-xs font-bold uppercase tracking-wider text-stone-600 mr-1 flex items-center gap-1">
+            <span className="text-xs font-bold uppercase tracking-wider text-stone-600 dark:text-stone-400 mr-1 flex items-center gap-1">
               <Building2 className="h-3 w-3" /> Provider:
             </span>
             {providers.map((p) => {
@@ -206,7 +206,7 @@ export const GiftCardMarketplaceView: React.FC = () => {
       </div>
 
       {giftCardOffers.length === 0 && (
-        <div className="rounded-2xl border border-dashed border-stone-300 py-12 text-center text-sm text-stone-600">
+        <div className="rounded-2xl border border-dashed border-stone-300 py-12 text-center text-sm text-stone-600 dark:text-stone-400">
           No eGift offers match &ldquo;{search}&rdquo;. Try another retailer or reset the provider filter.
         </div>
       )}
@@ -236,7 +236,7 @@ export const GiftCardMarketplaceView: React.FC = () => {
                       />
                     )}
                     <div>
-                      <span className="text-xs font-bold uppercase tracking-wider text-stone-600">
+                      <span className="text-xs font-bold uppercase tracking-wider text-stone-600 dark:text-stone-400">
                         {merchant?.name || 'All Retailers'}
                       </span>
                       <h3 className="font-bold text-base text-stone-900 dark:text-white leading-tight">
@@ -263,7 +263,7 @@ export const GiftCardMarketplaceView: React.FC = () => {
 
                 {/* Savings on sample spend */}
                 <div className="rounded-xl bg-stone-50 dark:bg-stone-800/80 p-3 mb-3 border border-stone-100 dark:border-stone-700/60 flex items-center justify-between">
-                  <span className="text-xs text-stone-600">Savings on ${exampleSpend} spend:</span>
+                  <span className="text-xs text-stone-600 dark:text-stone-400">Savings on ${exampleSpend} spend:</span>
                   <span className="text-base font-black text-emerald-700 dark:text-emerald-400">
                     Save {formatAud(savingsOnExample)}
                   </span>
@@ -271,7 +271,7 @@ export const GiftCardMarketplaceView: React.FC = () => {
 
                 {offer.instructions && (
                   <div className="space-y-1 text-xs text-stone-600 dark:text-stone-300">
-                    <span className="font-bold text-xs uppercase tracking-wider text-stone-600 flex items-center gap-1">
+                    <span className="font-bold text-xs uppercase tracking-wider text-stone-600 dark:text-stone-400 flex items-center gap-1">
                       <Smartphone className="h-3.5 w-3.5" />
                       How to get it:
                     </span>
@@ -283,7 +283,7 @@ export const GiftCardMarketplaceView: React.FC = () => {
               </div>
 
               <div className="mt-4 pt-3 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between text-xs">
-                <span className="text-stone-600 font-medium truncate max-w-[170px]" title={card?.name}>
+                <span className="text-stone-600 dark:text-stone-400 font-medium truncate max-w-[170px]" title={card?.name}>
                   {card?.name}
                 </span>
                 {merchant && (

@@ -195,7 +195,9 @@ export function rankOffers(
   for (const card of Object.values(products)) {
     // If card has points and wasn't already covered in a merchant offer
     const alreadyProcessed = rankedList.some(r => r.card.id === card.id);
-    if (!alreadyProcessed && card.pointsPerAudStandard > 0 && card.pointsProgramValueAudPerPoint > 0) {
+    const earnsPoints = card.pointsPerAudStandard > 0 && card.pointsProgramValueAudPerPoint > 0;
+    // Held cards that earn nothing still get a $0 row, so the user's deck never ranks as empty.
+    if (!alreadyProcessed && (earnsPoints || heldCardIds.includes(card.id))) {
       const pointsEarned = Math.round(safeSpend * card.pointsPerAudStandard);
       const pointsValueAud = pointsEarned * card.pointsProgramValueAudPerPoint;
       const netBenefitAud = Number(pointsValueAud.toFixed(2));
@@ -222,13 +224,13 @@ export function rankOffers(
         pointsValueAud: Number(pointsValueAud.toFixed(2)),
         netBenefitAud,
         effectiveReturnPercent,
-        breakdownSteps: [
-          `Base Points (${card.pointsPerAudStandard} pts/$1): ${pointsEarned.toLocaleString()} ${card.rewardProgram} points valued at ~${ptValCents}¢/pt = $${pointsValueAud.toFixed(2)} AUD.`
-        ],
+        breakdownSteps: earnsPoints
+          ? [`Base Points (${card.pointsPerAudStandard} pts/$1): ${pointsEarned.toLocaleString()} ${card.rewardProgram} points valued at ~${ptValCents}¢/pt = $${pointsValueAud.toFixed(2)} AUD.`]
+          : ['No rewards or cashback on standard spend with this card.'],
         actionLabel: 'Pay directly with card',
         isGiftCard: false,
         isOwned: heldCardIds.includes(card.id),
-        badgeText: 'Base Points',
+        badgeText: earnsPoints ? 'Base Points' : 'No Rewards',
       });
     }
   }

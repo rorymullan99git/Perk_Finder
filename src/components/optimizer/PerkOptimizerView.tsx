@@ -11,6 +11,7 @@ import { formatAud, formatPercent } from '@/lib/utils';
 import { MerchantCombobox } from '@/components/ui/combobox';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { 
   Sparkles, 
@@ -43,13 +44,6 @@ export const PerkOptimizerView: React.FC = () => {
   const [filterType, setFilterType] = useState<'all' | 'owned' | 'giftcard' | 'cashback'>('all');
   const [selectedOfferForDetail, setSelectedOfferForDetail] = useState<RankedOffer | null>(null);
   const [spendText, setSpendText] = useState(String(spendAud));
-
-  useEffect(() => {
-    if (!selectedOfferForDetail) return;
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setSelectedOfferForDetail(null);
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [selectedOfferForDetail]);
 
   const selectedMerchant = MERCHANTS_MAP[selectedMerchantId] || MERCHANTS_DATA[0];
 
@@ -272,6 +266,8 @@ export const PerkOptimizerView: React.FC = () => {
           <p className="mt-6 pt-5 border-t border-white/10 text-base md:text-lg text-stone-200" aria-live="polite">
             {isHoldingBest ? (
               <>You&apos;re already holding the best option at {selectedMerchant.name}: <strong className="text-emerald-300">{topMarket.card.name}</strong> returns <strong className="text-emerald-300">{formatAud(topMarket.netBenefitAud)}</strong> on ${spendAud}.</>
+            ) : topOwned && topOwned.netBenefitAud === 0 ? (
+              <>None of your cards earn anything at {selectedMerchant.name}. <strong className="text-amber-300">{topMarket.card.name}</strong> would return <strong className="text-amber-300">{formatAud(topMarket.netBenefitAud)}</strong> on ${spendAud}.</>
             ) : topOwned ? (
               <>Use <strong className="text-emerald-300">{topOwned.card.name}</strong> to keep <strong className="text-emerald-300">{formatAud(topOwned.netBenefitAud)}</strong>. <strong className="text-amber-300">{topMarket.card.name}</strong> would earn <strong className="text-amber-300">{formatAud(missedSavingsAud)}</strong> more.</>
             ) : (
@@ -330,7 +326,7 @@ export const PerkOptimizerView: React.FC = () => {
                       <div className="text-2xl font-black text-emerald-700 dark:text-emerald-400">
                         +{formatAud(topOwned.netBenefitAud)}
                       </div>
-                      <span className="text-xs text-stone-600">Est. value, before annual fee</span>
+                      <span className="text-xs text-stone-600 dark:text-stone-400">Est. value, before annual fee</span>
                     </div>
                   </div>
 
@@ -374,12 +370,12 @@ export const PerkOptimizerView: React.FC = () => {
               </>
             ) : (
               <div className="py-8 px-4 text-center space-y-3 rounded-2xl border border-dashed border-stone-300 dark:border-stone-700">
-                <AlertCircle className="h-10 w-10 text-stone-600 mx-auto" />
+                <AlertCircle className="h-10 w-10 text-stone-600 dark:text-stone-400 mx-auto" />
                 <div>
                   <h4 className="font-bold text-stone-800 dark:text-stone-200">
                     No cards selected in your deck
                   </h4>
-                  <p className="text-xs text-stone-600 max-w-sm mx-auto mt-1">
+                  <p className="text-xs text-stone-600 dark:text-stone-400 max-w-sm mx-auto mt-1">
                     Select the cards and bank accounts you hold in &apos;My Card Deck&apos; to instantly calculate your personal best return.
                   </p>
                 </div>
@@ -445,7 +441,7 @@ export const PerkOptimizerView: React.FC = () => {
                       <div className="text-2xl font-black text-stone-900 dark:text-white">
                         +{formatAud(topMarket.netBenefitAud)}
                       </div>
-                      <span className="text-xs text-stone-600">Total Reward AUD</span>
+                      <span className="text-xs text-stone-600 dark:text-stone-400">Total Reward AUD</span>
                     </div>
                   </div>
 
@@ -454,7 +450,7 @@ export const PerkOptimizerView: React.FC = () => {
                       <Zap className="h-3.5 w-3.5 text-amber-500" />
                       <span>{topMarket.actionLabel}</span>
                     </span>
-                    <span className="text-xs text-stone-600">
+                    <span className="text-xs text-stone-600 dark:text-stone-400">
                       Annual Fee: ${topMarket.card.annualFeeAud}/yr
                     </span>
                   </div>
@@ -597,11 +593,11 @@ export const PerkOptimizerView: React.FC = () => {
                           In Your Deck
                         </Badge>
                       ) : (
-                        <Badge variant="outline" className="text-xs py-0 text-stone-600">
+                        <Badge variant="outline" className="text-xs py-0 text-stone-600 dark:text-stone-400">
                           Not Held
                         </Badge>
                       )}
-                      <span className="text-xs text-stone-600 hidden md:inline">
+                      <span className="text-xs text-stone-600 dark:text-stone-400 hidden md:inline">
                         • {item.card.issuer}
                       </span>
                     </div>
@@ -614,7 +610,7 @@ export const PerkOptimizerView: React.FC = () => {
                 {/* Right: Return Metrics & Math */}
                 <div className="flex items-center justify-between sm:justify-end gap-6 pt-2 sm:pt-0 border-t sm:border-0 border-stone-100 dark:border-stone-800">
                   <div className="text-left sm:text-right">
-                    <div className="text-xs font-medium text-stone-600">
+                    <div className="text-xs font-medium text-stone-600 dark:text-stone-400">
                       {formatPercent(item.effectiveReturnPercent)} Return
                     </div>
                     <div className="text-base font-extrabold text-emerald-700 dark:text-emerald-400">
@@ -630,35 +626,20 @@ export const PerkOptimizerView: React.FC = () => {
         </div>
       </div>
 
-      {/* Offer Detail Drawer / Modal */}
+      {/* Offer Detail Modal */}
       {selectedOfferForDetail && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Offer breakdown"
-          onClick={() => setSelectedOfferForDetail(null)}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/70 backdrop-blur-sm animate-in fade-in"
-        >
-          <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl dark:bg-stone-900 border border-stone-200 dark:border-stone-800 space-y-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <Badge variant="brand" className="mb-2">
-                  {selectedOfferForDetail.badgeText || 'Perk Breakdown'}
-                </Badge>
-                <h3 className="text-xl font-bold text-stone-900 dark:text-white">
-                  {selectedOfferForDetail.card.name}
-                </h3>
-                <p className="text-xs text-stone-600 dark:text-stone-400">
-                  {selectedOfferForDetail.perk.title}
-                </p>
-              </div>
-              <button
-                onClick={() => setSelectedOfferForDetail(null)}
-                aria-label="Close"
-                className="rounded-full p-2 text-stone-600 hover:bg-stone-100 dark:hover:bg-stone-800"
-              >
-                ✕
-              </button>
+        <Dialog open onOpenChange={(o) => !o && setSelectedOfferForDetail(null)} label="Offer breakdown">
+          <div className="space-y-4">
+            <div>
+              <Badge variant="brand" className="mb-2">
+                {selectedOfferForDetail.badgeText || 'Perk Breakdown'}
+              </Badge>
+              <h3 className="text-xl font-bold text-stone-900 dark:text-white pr-10">
+                {selectedOfferForDetail.card.name}
+              </h3>
+              <p className="text-xs text-stone-600 dark:text-stone-400">
+                {selectedOfferForDetail.perk.title}
+              </p>
             </div>
 
             <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex items-center justify-between">
@@ -707,7 +688,7 @@ export const PerkOptimizerView: React.FC = () => {
               </Button>
             </div>
           </div>
-        </div>
+        </Dialog>
       )}
     </div>
   );

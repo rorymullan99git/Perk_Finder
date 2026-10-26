@@ -24,7 +24,7 @@ export default function Home() {
           <div className="h-10 w-10 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-600 to-amber-500 animate-spin flex items-center justify-center text-white font-bold">
             P
           </div>
-          <span className="text-xs font-semibold text-stone-500 tracking-wider uppercase">
+          <span className="text-xs font-semibold text-stone-500 dark:text-stone-400 tracking-wider uppercase">
             Loading PerkPilot Engine...
           </span>
         </div>

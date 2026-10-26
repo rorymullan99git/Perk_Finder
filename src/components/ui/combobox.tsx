@@ -57,22 +57,22 @@ export function MerchantCombobox({
                 style={{ backgroundColor: selectedMerchant.color }}
               />
               <span className="truncate">{selectedMerchant.name}</span>
-              <span className="text-xs text-stone-600 capitalize hidden sm:inline">
+              <span className="text-xs text-stone-600 dark:text-stone-400 capitalize hidden sm:inline">
                 ({selectedMerchant.category.replace('_', ' ')})
               </span>
             </>
           ) : (
-            <span className="text-stone-600">Select an Australian merchant...</span>
+            <span className="text-stone-600 dark:text-stone-400">Select an Australian merchant...</span>
           )}
         </span>
-        <ChevronsUpDown className="h-4 w-4 shrink-0 text-stone-600" />
+        <ChevronsUpDown className="h-4 w-4 shrink-0 text-stone-600 dark:text-stone-400" />
       </button>
 
       {open && (
         <div className="absolute top-full left-0 z-50 mt-2 w-full min-w-[280px] rounded-2xl border border-stone-200 bg-white p-2 shadow-2xl dark:border-stone-800 dark:bg-stone-900 animate-in fade-in-80 zoom-in-95">
           {/* Search bar */}
           <div className="relative mb-2 flex items-center px-2">
-            <Search className="h-4 w-4 text-stone-600 mr-2 shrink-0" />
+            <Search className="h-4 w-4 text-stone-600 dark:text-stone-400 mr-2 shrink-0" />
             <input
               type="text"
               value={search}
@@ -88,7 +88,7 @@ export function MerchantCombobox({
           {/* List items */}
           <div className="max-h-64 overflow-y-auto space-y-1 pr-1">
             {filtered.length === 0 ? (
-              <div className="p-4 text-center text-xs text-stone-600">
+              <div className="p-4 text-center text-xs text-stone-600 dark:text-stone-400">
                 No matching Australian merchant found.
               </div>
             ) : (
@@ -118,7 +118,7 @@ export function MerchantCombobox({
                       <span className="truncate">{m.name}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-stone-600 capitalize">
+                      <span className="text-xs text-stone-600 dark:text-stone-400 capitalize">
                         {m.category.replace('_', ' ')}
                       </span>
                       {isSelected && <Check className="h-4 w-4 text-emerald-700 dark:text-emerald-400" />}

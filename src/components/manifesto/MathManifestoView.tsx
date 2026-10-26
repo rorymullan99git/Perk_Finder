@@ -100,7 +100,7 @@ export const MathManifestoView: React.FC = () => {
       <Card className="border-stone-200 dark:border-stone-800">
         <CardHeader>
           <CardTitle className="text-xl">Standardized Australian Reward Point Valuations</CardTitle>
-          <p className="text-xs text-stone-600">
+          <p className="text-xs text-stone-600 dark:text-stone-400">
             Normalized against realistic Australian domestic and international redemptions (not inflated promotional claims).
           </p>
         </CardHeader>
@@ -108,7 +108,7 @@ export const MathManifestoView: React.FC = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <caption className="sr-only">Reward point valuations by program</caption>
-              <thead className="border-b border-stone-200 dark:border-stone-800 text-stone-600 uppercase tracking-wider text-xs">
+              <thead className="border-b border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 uppercase tracking-wider text-xs">
                 <tr>
                   <th scope="col" className="py-3 px-3">Reward Program</th>
                   <th scope="col" className="py-3 px-3">Valuation / Point</th>
@@ -125,7 +125,7 @@ export const MathManifestoView: React.FC = () => {
                     <td className="py-3 px-3 font-bold text-emerald-700 dark:text-emerald-400">
                       {p.valueCents}
                     </td>
-                    <td className="py-3 px-3 font-mono text-stone-600">
+                    <td className="py-3 px-3 font-mono text-stone-600 dark:text-stone-400">
                       {p.perPtAud}
                     </td>
                     <td className="py-3 px-3 text-stone-600 dark:text-stone-400">

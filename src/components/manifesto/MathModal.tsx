@@ -10,7 +10,7 @@ export const MathModal: React.FC = () => {
   const { showMathModal, setShowMathModal } = usePerkStore();
 
   return (
-    <Dialog open={showMathModal} onOpenChange={setShowMathModal}>
+    <Dialog open={showMathModal} onOpenChange={setShowMathModal} label="PerkPilot Pure Math Engine">
       <DialogHeader>
         <div className="flex items-center gap-2 mb-1">
           <div className="h-8 w-8 rounded-xl bg-emerald-500/20 text-emerald-700 flex items-center justify-center">
