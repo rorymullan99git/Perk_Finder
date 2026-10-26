@@ -27,10 +27,13 @@ npm run build
 
 ## Deploying to Cloud Run
 
+From Google Cloud Shell (or any machine logged in with `gcloud`):
+
 ```bash
-gcloud config set project YOUR_PROJECT_ID
-SERVICE=perk-finder REGION=australia-southeast1 ./scripts/deploy-cloud-run.sh
+./scripts/deploy-cloud-run.sh
 ```
+
+It defaults to project `perkfinder-512800` in Sydney (`australia-southeast1`) and updates the existing service if there is exactly one. Override with `PROJECT=`, `REGION=` or `SERVICE=`.
 
 The script builds from the `Dockerfile` and deploys with a dedicated no-permission service account, a max of 3 instances (caps cost if someone floods the site), and 512 MiB memory.
 
